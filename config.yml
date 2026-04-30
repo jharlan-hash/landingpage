@@ -1,0 +1,163 @@
+baseURL: "https://jacksovern.xyz"
+theme: "terminalcv"
+title: "jacksovern.xyz"
+
+params:
+  description: "sysadmin, homelab tinkerer, and professional tab hoarder"
+  blog:
+    enabled: false
+
+  prompt:
+    core:
+      text: "jack@jacksovern.xyz"
+      color: "green"
+      before: "["
+      beforeColor: "cyan"
+      after: "]"
+      afterColor: "cyan"
+    separator:
+      text: ":"
+    path:
+      before: ""
+      text: "~"
+      color: "yellow"
+      after: ""
+    extra:
+      text: "$ "
+      color: "white"
+
+  listLS: true
+  source: true
+  greetingbannercolor: green
+  greetingbanner: |
+    ‎   _            _                                                   
+      (_) __ _  __ | |__ ___ ___ __ __ ___  _ _  _ _     __ __ _  _  ___
+      | |/ _` |/ _|| / /(_-</ _ \ V // -_)| '_|| ' \  _ \ \ /| || ||_ /
+     _/ |\__,_|\__||_\_\/__/\___/ \_/ \___||_|  |_||_|(_)/_\_\ \_, |/__|
+    |__/                                                        |__/
+
+  greeting: |
+    Welcome to jacksovern.xyz — homelab, self-hosted services, and perpetual yak shaving.
+
+    Type 'help' for a list of available commands.
+    Type 'services' to see what I'm running.
+
+  bootsequence: |
+    BIOS v2.42 — Jack's Homelab Systems
+    Initializing POST...
+    RAM: 64GB ECC DDR4 ... OK
+    Checking disk array: /dev/sda /dev/sdb /dev/sdc /dev/sdd ... OK (RAID-Z2)
+    Loading kernel: Linux 6.6.30-hardened
+    ......................
+    Mounting filesystems ... OK
+    Starting containerd ... OK
+    Starting Docker daemon ... OK
+    Starting nginx reverse proxy ... OK
+    ......................
+    Bringing up services:
+      [OK] books.jacksovern.xyz
+      [OK] files.jacksovern.xyz
+      [OK] torrent.jacksovern.xyz
+      [OK] wiki.jacksovern.xyz
+    ......................
+    All systems nominal. Welcome, jack.
+
+  whois:
+    details:
+      leftColor: "cyan"
+      rightColor: "white"
+      descriptionColor: "white"
+      name: "Jack"
+      profession: "Sysadmin / Homelab Enthusiast"
+      location: "The Internet"
+      homelink: "https://jacksovern.xyz"
+      description: |
+        Self-hosting everything since before it was cool.
+        I run my own infrastructure because the cloud is just someone else's computer,
+        and I happen to like knowing whose computer it is.
+
+        Currently maintaining a homelab with more services than I have time to document,
+        but hey — that's what wikis are for.
+
+  social:
+    details:
+      - name: "github"
+        url: "https://github.com/jharlan-hash"
+
+  skills:
+    settings:
+      useLess: true
+    details:
+      - name: Linux / Unix Administration
+        percentage: 95
+        description: "systemd, cron, bash, the whole stack"
+
+      - name: Containerization (Docker / Podman)
+        percentage: 90
+        description: "compose files for days"
+
+      - name: Networking & DNS
+        percentage: 85
+        description: "reverse proxies, VLANs, pfSense/OPNsense"
+
+      - name: Storage & ZFS
+        percentage: 80
+        description: "RAID-Z configs, snapshots, replication"
+
+      - name: Python / Bash Scripting
+        percentage: 85
+        description: "automation is self-care"
+
+      - name: Security Hardening
+        percentage: 75
+        description: "fail2ban, Wireguard, 2FA everywhere"
+
+  projects:
+    settings:
+      useLess: true
+    details:
+      - title: "Homelab Infrastructure"
+        color: green
+        date: "2020 - present"
+        link: "https://jacksovern.xyz"
+        description: "Self-hosted stack running on bare metal + VMs with full monitoring, backups, and automated deploys."
+
+      - title: "Audiobook Server"
+        color: cyan
+        date: "2022 - present"
+        link: "https://books.jacksovern.xyz"
+        description: "Audiobookshelf instance — personal audiobook and podcast library."
+
+      - title: "File Server"
+        color: yellow
+        date: "2022 - present"
+        link: "https://files.jacksovern.xyz"
+        description: "Copyparty instance for file storage and sharing."
+
+      - title: "Torrent Client"
+        color: blue
+        date: "2021 - present"
+        link: "https://torrent.jacksovern.xyz"
+        description: "qBittorrent web UI — the \"Linux ISO\" downloader."
+
+      - title: "Wiki Cluster"
+        color: purple
+        date: "2023 - present"
+        link: "https://wiki.jacksovern.xyz"
+        description: "Kiwix server hosting offline Wikipedia and other reference wikis."
+
+  misc:
+    commandName: "services"
+    title: "Self-Hosted Services"
+    titleColor: cyan
+    content: |
+      Here's what's running on jacksovern.xyz:
+
+        books.jacksovern.xyz   — Audiobookshelf (audiobooks & podcasts)
+        files.jacksovern.xyz   — Copyparty (file storage & sharing)
+        torrent.jacksovern.xyz — qBittorrent (the good stuff^H^H^H^H^H^H Linux ISOs)
+        wiki.jacksovern.xyz    — Kiwix (offline Wikipedia & more)
+
+      All services are self-hosted on personal hardware.
+      No clouds were harmed in the making of this homelab.
+    contentColor: white
