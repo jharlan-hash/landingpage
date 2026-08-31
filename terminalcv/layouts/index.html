@@ -1,0 +1,410 @@
+{{ define "body" }}
+<script>
+jQuery(document).ready(function($) {
+    var animation = false;
+    var postFilenames = [
+        {{ range where .Site.RegularPages "Section" "posts" }}
+        "{{ with .File }}{{ path.BaseName .Dir }}{{ end }}",
+        {{ end }}
+    ];
+    var lessCommands = [
+        "whois",
+        "home",
+        {{ if .Site.Params.social }}"social",{{ end }}
+        {{ if .Site.Params.work }}"work",{{ end }}
+        {{ if .Site.Params.education }}"education",{{ end }}
+        {{ if .Site.Params.skills }}"skills",{{ end }}
+        {{ if .Site.Params.softSkills }}"softskills",{{ end }}
+        {{ if .Site.Params.languages }}"languages",{{ end }}
+        {{ if .Site.Params.projects }}"projects",{{ end }}
+        {{ if .Site.Params.publications }}"publications",{{ end }}
+        {{ if .Site.Params.certifications }}"certifications",{{ end }}
+        {{ if .Site.Params.misc }}"{{ .Site.Params.misc.commandName | default "other" }}",{{ end }}
+        {{ if not .Site.Params.Source }}"source",{{ end }}
+    ];
+    var commands = {
+        help: "shows help",
+        less: {
+            description: "Use less as output method for commands",
+            args: [
+                ...lessCommands{{ if .Site.Params.blog.enabled }},
+                ...postFilenames{{ end }}
+            ]
+        },
+        whois:   "list basic details",
+        files:   "copyparty file server",
+        wiki:    {
+            description: "kiwix wiki instance (use wiki help to list subcommands)",
+            args: ["help", "home", "arch", "voyage", "phys", "xkcd", "recipes", "stardew", "ifixit"]
+        },
+        books:   "audiobookshelf instance",
+        torrent: "qbittorrent instance",
+        {{ if .Site.Params.misc }}
+            {{ .Site.Params.misc.commandName | default "other" }}: "{{.Site.Params.misc.title }}",
+        {{ end }}
+        {{ if not .Site.Params.Source }}
+            source: "shows details about template powering this website",
+        {{ end }}
+    };
+    function progressBar(number) {
+        var barLength = Math.round(number / 10);
+        var barFilled = Array(barLength + 1).join("&#9611;");
+        var barBlank= Array(11 - barLength).join("&#9617;");
+        return barFilled + barBlank
+    }
+    // Calculate the tabbing to keep commands and descriptions aligned in the help message
+    function padKey(key, length) {
+        return key + ' '.repeat(length - key.length);
+    }
+    function commandsHelp() {
+        let longestKeyLength = Math.max(...Object.keys(commands).map(key => key.length));
+        let helpText = ""
+        for (let key in commands) {
+          if (commands.hasOwnProperty(key)) {
+              commandValue = commands[key];
+              description = typeof commandValue === 'string' ? commandValue : commandValue.description;
+              helpText += ` ${padKey(key, longestKeyLength)}\t${description}\n`
+          }
+        }
+        return helpText
+    }
+    var help = '\n[[b;white;]usage:]\n' +
+                '\n <command>'.padEnd(17) + '- execute the command\n' +
+                ' less <command>'.padEnd(16) + '- use less to display the output\n\n' +
+                {{ if .Site.Params.blog.enabled }}
+                  ' less <post>'.padEnd(16) + '- use less to display a post\n' +
+                  ' cat <post>'.padEnd(16) + '- use cat to print a post\n' +
+                {{ end }}
+                '\n[[b;white;]Available commands:]\n' +
+               commandsHelp();
+    var whois = [
+        {{ with .Site.Params.whois.details }}
+            '[[b;{{ .leftColor | default "grey" }};]Name:]          [[b;{{ .rightColor | default "grey" }};]{{ .name }}\n]' +
+            '[[b;{{ .leftColor | default "grey" }};]Profession:]\t[[b;{{ .rightColor | default "grey" }};]{{ .profession }}\n]' +
+            '[[b;{{ .leftColor | default "grey" }};]Location:]\t\t[[b;{{ .rightColor | default "grey" }};]{{ .location }}\n]' +
+            {{ if .email }}
+            '[[b;{{ .leftColor | default "grey" }};]Email:]\t\t\t{{ .email }}\n' +
+            {{ end }}
+            {{ if .homelink }}
+            '[[b;{{ .leftColor | default "grey" }};]Homepage:]      {{ .homelink }}\n' +
+            {{ end }}
+            {{ if .description }}
+            '[[b;{{ .descriptionColor | default "grey" }};]{{ .description }}]' +
+            {{ end }}
+            '\r',
+        {{ end }}
+    ];
+    var misc = [
+         {{ with .Site.Params.misc }}
+        '[[b;{{ .titleColor }};]{{ .title }}]\n' +
+        '[[;{{ .contentColor }};]{{ .content }}]\n',
+         {{ end }}
+    ];
+    var source =  '        _______            \n' +
+                  '       |       |           \n' +
+                  '       |       |           \n' +
+                  '       |_______|_______    \n' +
+                  '               |       |   \n' +
+                  '               |       |   \n' +
+                  ' ______________|_______|   \n' +
+                  '|      |       |       |   \n' +
+                  '|      |       |       |   \n' +
+                  '|______|_______|_______|   \n' +
+                  '[[;red;]May the source be with you]\n' +
+                  '[[;grey;]https://github.com/coolapso/hugo-theme-terminalcv\n';
+    $('body').terminal(function(command, term) {
+        var useLess = false;
+        {{if .Site.Params.useLess }}
+        useLess = true;
+        {{ end }}
+        function echoArray(array, options) {
+            var opts = options || {};
+            if (useLess) {
+                if (opts.raw) {
+                    var content = array[0];
+                    var export_data = term.export_view();
+                    term.clear();
+                    term.echo(content, {raw: true});
+                    term.push(function(command) {}, {
+                        prompt: ':',
+                        keydown: function(e) {
+                            if (e.which === 81 || e.which === 113) { // Q
+                                term.pop();
+                                term.import_view(export_data);
+                                return false;
+                            }
+                        }
+                    });
+                } else {
+                    term.less(array);
+                }
+            } else {
+                for (i = 0; i < array.length; i += 1) {
+                    term.echo(array[i], options || {});
+                }
+            }
+        }
+        function catPost(term, postdir) {
+        url = "/posts/" + postdir + "/";
+        $.ajax({
+            url: url,
+            type: 'GET',
+            success: function(data) {
+                // term.echo(data, {raw: true});
+                echoArray([data], {raw: true});
+            },
+            error: function() {
+                term.echo("Error: Could not load post " + postdir);
+            }
+        });
+    }
+        //Function used by StartX to draw the progressBar
+        function progress(percent, width) {
+            var size = Math.round(width*percent/100);
+            var left = '', taken = '', i;
+            for (i=size; i--;) {
+                taken += '=';
+            }
+            if (taken.length > 0) {
+                taken = taken.replace(/=$/, '>');
+            }
+            for (i=width-size; i--;) {
+                left += ' ';
+            }
+            return '[' + taken + left + '] ' + percent + '%';
+        }
+        function loading () {
+            var i = 0, size = 30;
+            prompt = term.get_prompt();
+            string = progress(0, size);
+            term.set_prompt(progress);
+            animation = true;
+            (function loop() {
+                string = progress(i++, size);
+                term.set_prompt(string);
+                if (i < 100) {
+                    timer = setTimeout(loop, 5);
+                } else {
+                    term.echo(progress(i, size) + ' [[b;green;]OK]').set_prompt(prompt);
+                    animation = false
+                }
+            })();
+        }
+        cmdParts = command.split(/[ ]+/);
+        if (cmdParts[0] == 'less') {
+            useLess = true;
+            cmdParts.shift();
+            let target = cmdParts[0];
+            if (!target) {
+                term.echo("less: missing argument");
+                return;
+            } else if (postFilenames.includes(target)) {
+                // its a blogpost
+                catPost(term, target);
+                return;
+            }
+        }
+        switch(cmdParts[0]) {
+            case 'whois':
+                {{ if .Site.Params.whois.settings.useLess }}
+                useLess = true;
+                {{ end }}
+                echoArray(whois);
+                break;
+            case '{{ .Site.Params.misc.commandName | default "misc"}}':
+                {{ if .Site.Params.misc.settings.useLess }}
+                useLess = true;
+                {{ end }}
+                echoArray(misc);
+                break;
+            case 'help':
+            case '?':
+                term.echo(help);
+                break;
+            case 'files':
+                term.echo("loading ...");
+                loading();
+                setTimeout(function(){ window.open("https:\/\/files.jacksovern.xyz", "_blank") }, 700);
+                break;
+            case 'wiki':
+                if (cmdParts.length > 1){
+                    switch(cmdParts[1]){
+                        case 'help':
+                            term.echo("wiki: wiki [page]\n" +
+                                      "    Open a Kiwix-served page.\n\n" +
+                                      "    Arguments:\n" +
+                                      "      arch      archlinux wiki\n" +
+                                      "      home      main page of the wiki\n" +
+                                      "      ifixit    ifixit wiki\n" +
+                                      "      phys      libretexts physics library\n" +
+                                      "      recipes   public domain recipes\n" +
+                                      "      stardew   stardew valley wiki\n" +
+                                      "      voyage    wikivoyage\n" +
+                                      "      xkcd      xkcd comics\n");
+                            break;
+                        case 'home':
+                            term.echo("loading ...");
+                            loading();
+                            setTimeout(function(){ window.open("https:\/\/wiki.jacksovern.xyz", "_blank") }, 700);
+                            break;
+                        case 'arch':
+                            term.echo("loading ...");
+                            loading();
+                            setTimeout(function(){ window.open("https:\/\/wiki.jacksovern.xyz\/viewer#archlinux_en_all_maxi_2026-04\/Main_page", "_blank") }, 700);
+                            break;
+                        case 'voyage':
+                            term.echo("loading ...");
+                            loading();
+                            setTimeout(function(){ window.open("https:\/\/wiki.jacksovern.xyz\/viewer#wikivoyage_en_all_maxi_2026-03\/Wikivoyage%3AOffline_reader_Expedition\/Home_page", "_blank") }, 700);
+                            break;
+                        case 'phys':
+                            term.echo("loading ...");
+                            loading();
+                            setTimeout(function(){ window.open("https:\/\/wiki.jacksovern.xyz\/viewer#libretexts.org_en_phys_2026-01\/index.html", "_blank") }, 700);
+                            break;
+                        case 'xkcd':
+                            term.echo("loading ...");
+                            loading();
+                            setTimeout(function(){ window.open("https:\/\/wiki.jacksovern.xyz\/viewer#xkcd.com_en_all_2026-02\/xkcd.com\/", "_blank") }, 700);
+                            break;
+                        case 'recipes':
+                            term.echo("loading ...");
+                            loading();
+                            setTimeout(function(){ window.open("https:\/\/wiki.jacksovern.xyz\/viewer#publicdomainrecipes.com_en_all_2026-02\/publicdomainrecipes.com", "_blank") }, 700);
+                            break;
+                        case 'stardew':
+                            term.echo("loading ...");
+                            loading();
+                            setTimeout(function(){ window.open("https:\/\/wiki.jacksovern.xyz\/viewer#stardewvalleywiki_en_all_2026-01\/Stardew_Valley_Wiki", "_blank") }, 700);
+                            break;
+                        case 'ifixit':
+                            term.echo("loading ...");
+                            loading();
+                            setTimeout(function(){ window.open("https:\/\/wiki.jacksovern.xyz\/viewer#ifixit_en_all_2025-12\/home\/home", "_blank") }, 700);
+                            break;
+                    }
+                    break;
+                } else {
+                    term.echo("loading ...");
+                    loading();
+                    setTimeout(function(){ window.open("https:\/\/wiki.jacksovern.xyz\/viewer#wikipedia_en_all_maxi_2026-02\/User%3AThe_other_Kiwix_guy\/Landing", "_blank") }, 700);
+                    break;
+                }
+            case 'torrent':
+                term.echo("loading ...");
+                loading();
+                setTimeout(function(){ window.open("https:\/\/torrent.jacksovern.xyz", "_blank") }, 700);
+                break;
+            case 'books':
+                term.echo("loading ...");
+                loading();
+                setTimeout(function(){ window.open("https:\/\/books.jacksovern.xyz", "_blank") }, 700);
+                break;
+            case ':(){:|:&};:':
+                term.echo("nice try");
+                break;
+            case 'source':
+                {{ if .Site.Params.misc.settings.useLess }}
+                useLess = true;
+                {{ end }}
+                term.echo(source);
+                break;
+            case 'exit':
+            {{ if .Site.Params.exitLocation }}
+                term.echo("terminating ... ");
+                loading();
+                setTimeout(function(){window.location = '{{ .Site.Params.exitLocation }}'}, 700);
+                break;
+            {{ else }}
+                term.echo("Terminating session, thanks for visiting");
+                loading();
+                setTimeout(function() {
+                  term.pause();
+                  term.clear();
+                  term.echo("{{ .Site.Params.exitMessage }}");
+                }, 700);
+                break;
+            {{ end }}
+            {{ if .Site.Params.version }}
+            case 'version':
+                term.echo("{{ .Site.Params.version }}");
+                break;
+            {{ end }}
+            {{ if .Site.Params.blog.enabled }}
+            case 'cat':
+                if (cmdParts.length < 2) {
+                    term.echo("Usage: cat <filename>");
+                } else {
+                    var  postdir = cmdParts[1];
+                    catPost(term, postdir);
+                }
+                break;
+            case 'posts':
+            case 'ls':
+                posts(term);
+                break;
+            {{ end }}
+            case '':
+                break;
+            default:
+                term.echo("\nunknown command: " + command + "\n" +
+                          "please type 'help' or '?' for a list of available commands\n");
+        }
+    }, {
+        {{ if .Site.Params.bootsequence }}
+          greetings: false,
+          onInit: function(term) {
+          term.pause();
+          term.typing('echo', 1, '{{ .Site.Params.bootsequence }}', function() {
+            term.clear();
+            {{ if .Site.Params.greetingbanner }}
+              term.echo("[[b;{{ .Site.Params.greetingBannerColor | default "white" }};]{{ .Site.Params.greetingBanner }}{{ .Site.Params.version }}]");
+              term.echo("[[b;{{ .Site.Params.greetingColor | default "white" }};]{{ .Site.Params.greeting }}]");
+            {{ else }}
+              term.echo("[[b;{{ .Site.Params.greetingColor | default "white" }};]{{ .Site.Params.greeting }}]");
+            {{ end }}
+          });
+          term.resume();
+          },
+        {{ else }}
+          greetings: "[[b;{{ .Site.Params.greetingColor | default "white" }};]{{ .Site.Params.greeting }}]",
+        {{ end }}
+        prompt: '{{ with .Site.Params.prompt }}{{ with .core }}[[;{{ .beforeColor | default "grey" }};]{{ .before }}][[;{{ .color | default "grey" }};]{{ .text }}][[;{{ .afterColor | default "grey" }};]{{ .after }}]{{ end }}{{ with .separator }}[[;{{ .separatorColor | default "grey" }};]{{ .text }}]{{ end }}{{ with .path }}[[;{{ .beforeColor | default "grey" }};]{{ .before }}][[;{{ .color | default "grey" }};]{{ .text | default ":~$" }}][[;{{ .afterColor | default "grey" }};]{{ .after }}]{{ end }}{{ with .extra }}[[;{{ .color | default "grey" }};]{{ .text }}]{{ end }}{{ end }}',
+        keydown: function(e, term) {
+            if (animation) {
+                if (e.which == 68 && e.ctrlKey) { // CTRL+D
+                    clearTimeout(timer);
+                    animation = false;
+                    term.echo(string + ' [[b;red;]FAIL]')
+                    .set_prompt(prompt);
+                }
+                return false;
+            }
+        },
+        autocompleteMenu: true,
+        {{ if true }}
+          // own completion funciton with arguments support
+          completion: function(string) {
+              var command = this.get_command();
+              var parts = command.split(/\s+/);
+              var commandName = parts[0];
+              // Complete command names
+              if (parts.length === 1 || command.indexOf(' ') === -1) {
+                  return Object.keys(commands).filter(function(cmd) {
+                      return cmd.startsWith(string);
+                  });
+              }
+              // Arguments part for any command which has them
+              if (commands[commandName] && commands[commandName].args) {
+                  return commands[commandName].args.filter(function(arg) {
+                      return arg.startsWith(string);
+                  });
+              }
+          }
+        {{ else }}
+          completion: Object.keys(commands)
+        {{ end }}
+    });
+});
+</script>
+{{ end }}
