@@ -60,6 +60,7 @@ params:
       [OK] files.jacksovern.xyz
       [OK] torrent.jacksovern.xyz
       [OK] wiki.jacksovern.xyz
+      [OK] yt.jacksovern.xyz
     ......................
 
   whois:
@@ -85,6 +86,7 @@ params:
         books.jacksovern.xyz   — audiobookshelf (audiobooks & podcasts)
         files.jacksovern.xyz   — copyparty (file storage & sharing)
         torrent.jacksovern.xyz — qBittorrent (they say you will own nothing and be happy... well, i own this)
+        yt.jacksovern.xyz      — because who trusts an online youtube downloader? 
         wiki.jacksovern.xyz    — kiwix (offline wikipedia & more)
 
         no clouds were harmed in the making of this homelab.
